@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "racing-notes-app"
+version = "2.5.0"
+description = "A desktop note application for racing data and observations"
+authors = ["Your Name <your.email@example.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+PySide6 = "^6.7"
+pydantic = "^2.9"
+supabase = "^2.3"
+python-dotenv = "^1.0"
+requests = "^2.32"
+tinydb = "^4.8"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4"
+black = "^23.7"
+flake8 = "^6.0"
+
+[tool.briefcase.app.wisedesktopnoteapp]
+formal_name = "Racing Notes"
+bundle = "com.yourorg.racingnotes"
+version = "2.5.0"
+description = "A desktop note application for racing data and observations"
+sources = ["app"]
+
+[tool.briefcase.app.wisedesktopnoteapp.macOS]
+requires = [
+    "PySide6~=6.7.0",
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api" 
