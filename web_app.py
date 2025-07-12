@@ -27,6 +27,17 @@ def relative_time(dt: datetime) -> str:
 
 # Initialize Supabase client
 load_dotenv()
+
+# Debug: Show environment variables (safely)
+st.write("=== DEBUG INFO ===")
+st.write(f"SUPABASE_URL exists: {bool(os.getenv('SUPABASE_URL'))}")
+st.write(f"SUPABASE_ANON_KEY exists: {bool(os.getenv('SUPABASE_ANON_KEY'))}")
+supabase_url = os.getenv('SUPABASE_URL')
+if supabase_url:
+    st.write(f"SUPABASE_URL: {supabase_url[:30]}...")
+else:
+    st.error("SUPABASE_URL not found in environment!")
+
 supabase = SupabaseClient()
 supabase.connect()
 st.write(f"Database connected: {supabase.is_connected}")
@@ -35,9 +46,28 @@ st.write(f"Supabase URL: {supabase.url[:20]}... (partial for security)")
 cloud_storage = CloudStorageService(supabase)
 
 # Fetch metadata
-tracks = asyncio.run(supabase.get_tracks())
-drivers = asyncio.run(supabase.get_drivers())
-tags = asyncio.run(supabase.get_tags())
+try:
+    tracks = asyncio.run(supabase.get_tracks())
+    st.write(f"✅ Loaded {len(tracks)} tracks")
+except Exception as e:
+    st.error(f"❌ Error loading tracks: {e}")
+    tracks = []
+
+try:
+    drivers = asyncio.run(supabase.get_drivers())
+    st.write(f"✅ Loaded {len(drivers)} drivers")
+except Exception as e:
+    st.error(f"❌ Error loading drivers: {e}")
+    drivers = []
+
+try:
+    tags = asyncio.run(supabase.get_tags())
+    st.write(f"✅ Loaded {len(tags)} tags")
+except Exception as e:
+    st.error(f"❌ Error loading tags: {e}")
+    tags = []
+
+st.write("=== END DEBUG INFO ===")
 st.write(f"Loaded {len(tracks)} tracks, {len(drivers)} drivers, {len(tags)} tags from Supabase")
 
 # Streamlit app title
