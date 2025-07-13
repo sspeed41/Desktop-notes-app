@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.7.0"
+APP_VERSION = "2.7.1"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -183,27 +183,30 @@ st.markdown("""
             padding: 4px;
             font-size: 14px;
         }
-        /* X/Twitter style pill tag buttons */
+        /* X/Twitter style pill tag buttons - Clean and minimalistic */
         div[data-testid="stButton"] > button,
         .stButton > button,
         button[kind="secondary"] {
             background-color: #F7F9FA !important;  /* Very light gray like X */
             color: #536471 !important;  /* X gray text color */
-            padding: 0px 5px !important;  /* Even more compact padding */
-            font-size: 6px !important;  /* Much smaller font */
-            border-radius: 9999px !important;  /* Full pill shape like X */
+            padding: 2px 8px !important;  /* More comfortable padding */
+            font-size: 11px !important;  /* More readable font size */
+            border-radius: 20px !important;  /* Perfect pill shape */
             border: 1px solid #E1E8ED !important;  /* Subtle border */
             min-width: auto !important;
             max-width: none !important;
             width: auto !important;
-            height: 12px !important;  /* Much smaller height */
+            height: 18px !important;  /* More comfortable height */
             white-space: nowrap !important;
             font-weight: 400 !important;  /* Normal weight like X */
             text-transform: none !important;
             line-height: 1 !important;
             box-sizing: border-box !important;
             transition: all 0.15s ease !important;  /* Quick smooth transitions */
-            margin: 1px !important;  /* Tiny spacing between buttons */
+            margin: 2px 3px !important;  /* Proper spacing to prevent overlap */
+            display: inline-flex !important;  /* Better alignment */
+            align-items: center !important;
+            justify-content: center !important;
         }
         div[data-testid="stButton"] > button:hover,
         .stButton > button:hover,
@@ -219,10 +222,10 @@ st.markdown("""
             background-color: #1D9BF0 !important;  /* X blue for selected */
             color: white !important;
             border-color: #1D9BF0 !important;
-            font-size: 6px !important;  /* Consistent small font */
-            height: 12px !important;  /* Consistent small height */
-            padding: 0px 5px !important;  /* Consistent padding */
-            border-radius: 9999px !important;  /* Full pill shape */
+            font-size: 11px !important;  /* Consistent readable font */
+            height: 18px !important;  /* Consistent height */
+            padding: 2px 8px !important;  /* Consistent padding */
+            border-radius: 20px !important;  /* Perfect pill shape */
         }
         div[data-testid="stButton"] > button[type='primary']:hover,
         .stButton > button[type='primary']:hover,
@@ -273,10 +276,11 @@ st.markdown("""
             .stButton > button,
             button[kind="secondary"],
             button[kind="primary"] {
-                font-size: 5px !important;  /* Even smaller on mobile */
-                padding: 0px 3px !important;  /* Compact mobile padding */
-                height: 10px !important;  /* Very small on mobile */
-                margin: 0.5px !important;  /* Tiny mobile spacing */
+                font-size: 10px !important;  /* Slightly smaller on mobile but still readable */
+                padding: 2px 6px !important;  /* Compact mobile padding */
+                height: 16px !important;  /* Slightly smaller on mobile */
+                margin: 2px !important;  /* Consistent spacing */
+                border-radius: 16px !important;  /* Maintain pill shape */
             }
             .stSelectbox > div > div > div {
                 font-size: 12px;
@@ -308,9 +312,11 @@ st.markdown("""
             .stButton > button,
             button[kind="secondary"],
             button[kind="primary"] {
-                font-size: 6px !important;
-                padding: 1px 2px !important;
-                height: 12px !important;
+                font-size: 9px !important;  /* Smallest size but still readable */
+                padding: 1px 5px !important;  /* Minimal padding */
+                height: 14px !important;  /* Smallest height */
+                margin: 1px !important;  /* Minimal spacing */
+                border-radius: 14px !important;  /* Maintain pill shape */
             }
         }
     </style>
@@ -360,7 +366,7 @@ if st.session_state.current_user:
     with col4:
         driver = st.selectbox("Driver (Optional)", options=["None"] + [d.name for d in drivers], label_visibility="collapsed")
     
-    # Replace multiselect with small toggle buttons in two rows
+    # Replace multiselect with small toggle buttons in a flowing layout
     if 'selected_tags' not in st.session_state:
         st.session_state.selected_tags = []
     
@@ -370,27 +376,33 @@ if st.session_state.current_user:
         else:
             st.session_state.selected_tags.append(label)
     
-    # Split tags into two rows (with safety checks)
+    # Create a flowing layout with better spacing
     if tags and len(tags) > 0:
-        mid = len(tags) // 2
-        row1_tags = tags[:mid]
-        row2_tags = tags[mid:]
+        # Create a container for tags with custom HTML for better flow
+        st.markdown("""
+            <div style="margin-bottom: 8px;">
+                <div style="display: flex; flex-wrap: wrap; gap: 2px; align-items: center;">
+        """, unsafe_allow_html=True)
         
-        # Row 1
-        if len(row1_tags) > 0:
-            cols1 = st.columns(len(row1_tags))
-            for i, t in enumerate(row1_tags):
-                with cols1[i]:
-                    is_selected = t.label in st.session_state.selected_tags
-                    st.button(t.label, key=f'tag_{t.id}_row1', on_click=toggle_tag, args=(t.label,), help='Selected' if is_selected else 'Not selected', type='primary' if is_selected else 'secondary')
+        # Create columns for tags in groups of 6 for better flow
+        tags_per_row = 6
+        for i in range(0, len(tags), tags_per_row):
+            batch = tags[i:i + tags_per_row]
+            cols = st.columns(len(batch))
+            
+            for j, tag in enumerate(batch):
+                with cols[j]:
+                    is_selected = tag.label in st.session_state.selected_tags
+                    st.button(
+                        tag.label, 
+                        key=f'tag_{tag.id}_batch_{i//tags_per_row}_{j}', 
+                        on_click=toggle_tag, 
+                        args=(tag.label,), 
+                        help='Selected' if is_selected else 'Not selected', 
+                        type='primary' if is_selected else 'secondary'
+                    )
         
-        # Row 2
-        if len(row2_tags) > 0:
-            cols2 = st.columns(len(row2_tags))
-            for i, t in enumerate(row2_tags):
-                with cols2[i]:
-                    is_selected = t.label in st.session_state.selected_tags
-                    st.button(t.label, key=f'tag_{t.id}_row2', on_click=toggle_tag, args=(t.label,), help='Selected' if is_selected else 'Not selected', type='primary' if is_selected else 'secondary')
+        st.markdown("</div></div>", unsafe_allow_html=True)
     else:
         st.info("No tags available - check Supabase connection")
 
