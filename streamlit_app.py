@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.7.5"
+APP_VERSION = "2.7.6"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -407,7 +407,17 @@ if st.session_state.current_user:
         st.info("No tags available - check Supabase connection")
 
     # Add media upload (always show)
-    uploaded_files = st.file_uploader("Attach media", type=['jpg', 'png', 'gif', 'mp4', 'mov', 'avi'], accept_multiple_files=True, label_visibility="collapsed")
+    # Initialize file uploader key in session state for clearing after post
+    if 'file_uploader_key' not in st.session_state:
+        st.session_state.file_uploader_key = 0
+    
+    uploaded_files = st.file_uploader(
+        "Attach media", 
+        type=['jpg', 'png', 'gif', 'mp4', 'mov', 'avi'], 
+        accept_multiple_files=True, 
+        label_visibility="collapsed",
+        key=f"file_uploader_{st.session_state.file_uploader_key}"
+    )
     
     # Post button
     if st.button("Post", type="primary"):
@@ -456,6 +466,7 @@ if st.session_state.current_user:
                         st.success("✅ Note posted successfully!")
                         st.session_state.selected_tags = []  # Clear selections
                         st.session_state.note_text = "" # Clear the text area
+                        st.session_state.file_uploader_key += 1 # Increment key to clear files
                     else:
                         st.error("❌ Failed to post note - no response from database")
                 except Exception as e:
