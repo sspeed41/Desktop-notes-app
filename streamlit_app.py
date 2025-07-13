@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.7.2"
+APP_VERSION = "2.7.3"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -183,27 +183,27 @@ st.markdown("""
             padding: 4px;
             font-size: 14px;
         }
-        /* X/Twitter style pill tag buttons - Compact and space-efficient */
+        /* X/Twitter style pill tag buttons - Ultra compact and space-efficient */
         div[data-testid="stButton"] > button,
         .stButton > button,
         button[kind="secondary"] {
             background-color: #F7F9FA !important;  /* Very light gray like X */
             color: #536471 !important;  /* X gray text color */
-            padding: 1px 6px !important;  /* Very compact padding */
-            font-size: 9px !important;  /* Smaller font size */
-            border-radius: 8px !important;  /* Less rounded, more compact */
+            padding: 0px 4px !important;  /* Ultra compact padding */
+            font-size: 8px !important;  /* Even smaller font size */
+            border-radius: 4px !important;  /* Minimal rounded corners */
             border: 1px solid #E1E8ED !important;  /* Subtle border */
             min-width: auto !important;
             max-width: none !important;
             width: auto !important;
-            height: 14px !important;  /* Much smaller height */
+            height: 11px !important;  /* Much smaller height */
             white-space: nowrap !important;
             font-weight: 400 !important;  /* Normal weight like X */
             text-transform: none !important;
             line-height: 1 !important;
             box-sizing: border-box !important;
             transition: all 0.15s ease !important;  /* Quick smooth transitions */
-            margin: 1px !important;  /* Minimal spacing for symmetry */
+            margin: 0.5px !important;  /* Ultra minimal spacing */
             display: inline-flex !important;  /* Better alignment */
             align-items: center !important;
             justify-content: center !important;
@@ -222,10 +222,10 @@ st.markdown("""
             background-color: #1D9BF0 !important;  /* X blue for selected */
             color: white !important;
             border-color: #1D9BF0 !important;
-            font-size: 9px !important;  /* Consistent small font */
-            height: 14px !important;  /* Consistent small height */
-            padding: 1px 6px !important;  /* Consistent padding */
-            border-radius: 8px !important;  /* Less rounded */
+            font-size: 8px !important;  /* Consistent small font */
+            height: 11px !important;  /* Consistent small height */
+            padding: 0px 4px !important;  /* Consistent padding */
+            border-radius: 4px !important;  /* Minimal rounded corners */
         }
         div[data-testid="stButton"] > button[type='primary']:hover,
         .stButton > button[type='primary']:hover,
@@ -276,11 +276,11 @@ st.markdown("""
             .stButton > button,
             button[kind="secondary"],
             button[kind="primary"] {
-                font-size: 8px !important;  /* Even smaller on mobile */
-                padding: 1px 4px !important;  /* Compact mobile padding */
-                height: 12px !important;  /* Smaller on mobile */
-                margin: 1px !important;  /* Consistent minimal spacing */
-                border-radius: 6px !important;  /* Maintain compact shape */
+                font-size: 7px !important;  /* Very small on mobile */
+                padding: 0px 3px !important;  /* Ultra compact mobile padding */
+                height: 10px !important;  /* Very small on mobile */
+                margin: 0.5px !important;  /* Ultra minimal spacing */
+                border-radius: 3px !important;  /* Maintain compact shape */
             }
             .stSelectbox > div > div > div {
                 font-size: 12px;
@@ -312,11 +312,11 @@ st.markdown("""
             .stButton > button,
             button[kind="secondary"],
             button[kind="primary"] {
-                font-size: 7px !important;  /* Very small but still readable */
-                padding: 1px 3px !important;  /* Minimal padding */
-                height: 10px !important;  /* Smallest height */
-                margin: 0.5px !important;  /* Minimal spacing */
-                border-radius: 4px !important;  /* Maintain compact shape */
+                font-size: 6px !important;  /* Tiny but still readable */
+                padding: 0px 2px !important;  /* Ultra minimal padding */
+                height: 9px !important;  /* Smallest height */
+                margin: 0.5px !important;  /* Ultra minimal spacing */
+                border-radius: 2px !important;  /* Minimal rounded corners */
             }
         }
     </style>
