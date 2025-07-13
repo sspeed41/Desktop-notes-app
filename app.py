@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.6.3"
+APP_VERSION = "2.6.4"
 
 # Set up environment variables for Streamlit Cloud
 # These should be set in Streamlit Cloud's secrets management
