@@ -71,3 +71,29 @@ If you see connection errors:
 ---
 
 **That's it! Your Racing Notes app will be live on the web and accessible from any device.** 🏁 
+
+To install the programs mentioned in the Streamlit output (Xcode command line tools and the Watchdog module for better performance), follow these steps on your macOS system. These are optional but recommended by Streamlit for improved app reloading during development.
+
+### 1. Install Xcode Command Line Tools
+This provides essential developer tools that many Python packages (including Watchdog) rely on.
+- Open your Terminal app.
+- Run this command:
+  ```
+  xcode-select --install
+  ```
+- A popup window will appear asking to install the tools. Click "Install" and follow the prompts. It may take a few minutes to download and install (around 1-2 GB depending on your macOS version).
+- If it's already installed, you'll see a message saying so—no harm done.
+
+### 2. Install Watchdog
+This is a Python module that helps Streamlit detect file changes more efficiently.
+- In the same Terminal window, run:
+  ```
+  pip install watchdog
+  ```
+- If you have multiple Python versions or virtual environments, make sure you're in the right one (e.g., if you're using a virtualenv for your project, activate it first with `source venv/bin/activate` or similar).
+
+After these installations, try running your Streamlit app again with `streamlit run streamlit_app.py` to see if performance improves. If you run into any errors during installation (e.g., permission issues), try adding `sudo` to the commands or let me know the exact error message for more help.
+
+### Summary of Actions I've Taken So Far
+- Performed a semantic search on `streamlit_app.py` to understand the app's structure and components.
+- Ran the command `streamlit run streamlit_app.py` to test the app, which started successfully and provided local/network URLs, but was interrupted (no obvious errors in the partial output). 
