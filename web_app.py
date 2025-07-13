@@ -142,12 +142,12 @@ st.markdown("""
         .stButton > button {
             background-color: #FFFFFF !important;  /* White background */
             color: #000000 !important;  /* Black text for readability */
-            padding: 1px 3px !important;  /* Minimal padding */
-            font-size: 6px !important;  /* Smaller font */
-            border-radius: 3px !important;
+            padding: 2px 6px !important;  /* Slightly more padding for readability */
+            font-size: 10px !important;  /* Readable font size */
+            border-radius: 4px !important;
             border: 1px solid #333333 !important;
             min-width: auto !important;
-            height: auto !important;
+            height: 20px !important;  /* Fixed height for consistency */
             white-space: nowrap;
             font-weight: bold !important;
         }
@@ -205,8 +205,9 @@ st.markdown("""
                 font-size: 10px;
             }
             .stButton > button {
-                font-size: 5px !important;
-                padding: 0px 2px !important;
+                font-size: 8px !important;
+                padding: 1px 4px !important;
+                height: 18px !important;
             }
             .stSelectbox > div > div > div {
                 font-size: 12px;
@@ -235,8 +236,9 @@ st.markdown("""
                 line-height: 14px;
             }
             .stButton > button {
-                font-size: 4px !important;
-                padding: 0px 1px !important;
+                font-size: 7px !important;
+                padding: 1px 3px !important;
+                height: 16px !important;
             }
         }
     </style>
