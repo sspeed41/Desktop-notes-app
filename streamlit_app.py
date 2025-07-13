@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.7.4"
+APP_VERSION = "2.7.5"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -355,7 +355,15 @@ if st.session_state.current_user:
     # Main area: Compact note creation at top
     st.markdown('<div class="create-form">', unsafe_allow_html=True)
     st.header("What's happening?")  # X-like compose prompt
-    body = st.text_area("Note Content", placeholder="Write your note...", height=100, label_visibility="collapsed")  # Compact text area with hidden label
+    
+    # Initialize note text in session state
+    if 'note_text' not in st.session_state:
+        st.session_state.note_text = ""
+    
+    body = st.text_area("Note Content", value=st.session_state.note_text, placeholder="Write your note...", height=100, label_visibility="collapsed")
+    # Update session state with current text
+    st.session_state.note_text = body
+    
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         track = st.selectbox("Track", options=[t.name for t in tracks], label_visibility="collapsed", index=[t.name for t in tracks].index(default_track) if default_track else 0)
@@ -447,6 +455,7 @@ if st.session_state.current_user:
                     if new_note:
                         st.success("✅ Note posted successfully!")
                         st.session_state.selected_tags = []  # Clear selections
+                        st.session_state.note_text = "" # Clear the text area
                     else:
                         st.error("❌ Failed to post note - no response from database")
                 except Exception as e:
