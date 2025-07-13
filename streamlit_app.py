@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.7.3"
+APP_VERSION = "2.7.4"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -408,6 +408,11 @@ if st.session_state.current_user:
             selected_track = next((t for t in tracks if t.name == track), None)
             selected_driver = next((d for d in drivers if d.name == driver), None) if driver != "None" else None
             
+            # Validate we have required data
+            if not selected_track:
+                st.error(f"❌ Track '{track}' not found in database")
+                st.stop()
+            
             # Create note
             note_create = NoteCreate(
                 body=body,
@@ -428,23 +433,28 @@ if st.session_state.current_user:
             
             # Context info
             context_info = {
-                'track_name': track,
-                'series_name': series,
+                'track': selected_track,  # Pass track object instead of string
+                'series': series,  # Changed from 'series_name' to 'series'
                 'session_type': session_type,
                 'driver_name': driver if driver != "None" else None,
                 'tags': st.session_state.selected_tags
             }
             
-            try:
-                new_note = asyncio.run(supabase.create_note_with_context(note_create, context_info, media_files=media_files, created_by=st.session_state.current_user))
-                if new_note:
-                    st.success("Note posted!")
-                    st.session_state.selected_tags = []  # Clear selections
-                else:
-                    st.error("Failed to post note - no response from database")
-            except Exception as e:
-                st.error(f"Error creating note: {str(e)}")
+            # Show what we're about to create
+            with st.spinner("Creating note..."):
+                try:
+                    new_note = asyncio.run(supabase.create_note_with_context(note_create, context_info, media_files=media_files, created_by=st.session_state.current_user))
+                    if new_note:
+                        st.success("✅ Note posted successfully!")
+                        st.session_state.selected_tags = []  # Clear selections
+                    else:
+                        st.error("❌ Failed to post note - no response from database")
+                except Exception as e:
+                    st.error(f"❌ Error creating note: {str(e)}")
+                    st.error("Check your database connection and try again.")
             st.rerun()
+        else:
+            st.warning("⚠️ Please enter some text for your note")
     st.markdown('</div>', unsafe_allow_html=True)
 
     # Recent Notes feed - compact scrolling list
