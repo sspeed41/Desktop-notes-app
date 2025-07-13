@@ -61,7 +61,7 @@ st.markdown(f"""
 st.title("Racing Notes Web App")
 st.markdown(f"""
 <div style="display: inline-block; background: #1DA1F2; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-bottom: 16px;">
-    v2.6.0
+    v2.6.1
 </div>
 """, unsafe_allow_html=True)
 
