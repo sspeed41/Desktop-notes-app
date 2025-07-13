@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.6.9"
+APP_VERSION = "2.7.0"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -183,49 +183,53 @@ st.markdown("""
             padding: 4px;
             font-size: 14px;
         }
-        /* Small tag button styles - High specificity */
+        /* X/Twitter style pill tag buttons */
         div[data-testid="stButton"] > button,
         .stButton > button,
         button[kind="secondary"] {
-            background-color: #F8F9FA !important;  /* Light gray background */
-            color: #495057 !important;  /* Dark gray text */
-            padding: 1px 4px !important;  /* Very compact padding */
-            font-size: 8px !important;  /* Small readable font */
-            border-radius: 3px !important;
-            border: 1px solid #DEE2E6 !important;
+            background-color: #F7F9FA !important;  /* Very light gray like X */
+            color: #536471 !important;  /* X gray text color */
+            padding: 0px 5px !important;  /* Even more compact padding */
+            font-size: 6px !important;  /* Much smaller font */
+            border-radius: 9999px !important;  /* Full pill shape like X */
+            border: 1px solid #E1E8ED !important;  /* Subtle border */
             min-width: auto !important;
             max-width: none !important;
             width: auto !important;
-            height: 16px !important;  /* Very small height */
+            height: 12px !important;  /* Much smaller height */
             white-space: nowrap !important;
-            font-weight: 500 !important;
+            font-weight: 400 !important;  /* Normal weight like X */
             text-transform: none !important;
             line-height: 1 !important;
             box-sizing: border-box !important;
+            transition: all 0.15s ease !important;  /* Quick smooth transitions */
+            margin: 1px !important;  /* Tiny spacing between buttons */
         }
         div[data-testid="stButton"] > button:hover,
         .stButton > button:hover,
         button[kind="secondary"]:hover {
-            background-color: #E9ECEF !important;
-            color: #495057 !important;
-            border-color: #ADB5BD !important;
+            background-color: #E1E8ED !important;  /* Slightly darker on hover */
+            color: #14171A !important;  /* Darker text on hover */
+            border-color: #CCD6DD !important;
+            transform: none !important;  /* No transform effects */
         }
         div[data-testid="stButton"] > button[type='primary'],
         .stButton > button[type='primary'],
         button[kind="primary"] {
-            background-color: #1D9BF0 !important;  /* Blue for selected */
+            background-color: #1D9BF0 !important;  /* X blue for selected */
             color: white !important;
             border-color: #1D9BF0 !important;
-            font-size: 8px !important;
-            height: 16px !important;
-            padding: 1px 4px !important;
+            font-size: 6px !important;  /* Consistent small font */
+            height: 12px !important;  /* Consistent small height */
+            padding: 0px 5px !important;  /* Consistent padding */
+            border-radius: 9999px !important;  /* Full pill shape */
         }
         div[data-testid="stButton"] > button[type='primary']:hover,
         .stButton > button[type='primary']:hover,
         button[kind="primary"]:hover {
-            background-color: #0C7ABF !important;
+            background-color: #1A91DA !important;  /* Slightly darker blue on hover */
             color: white !important;
-            border-color: #0C7ABF !important;
+            border-color: #1A91DA !important;
         }
         /* Override for Post button to keep pill shape */
         button[kind='primary'] {
@@ -269,9 +273,10 @@ st.markdown("""
             .stButton > button,
             button[kind="secondary"],
             button[kind="primary"] {
-                font-size: 7px !important;
-                padding: 1px 3px !important;
-                height: 14px !important;
+                font-size: 5px !important;  /* Even smaller on mobile */
+                padding: 0px 3px !important;  /* Compact mobile padding */
+                height: 10px !important;  /* Very small on mobile */
+                margin: 0.5px !important;  /* Tiny mobile spacing */
             }
             .stSelectbox > div > div > div {
                 font-size: 12px;
