@@ -9,13 +9,19 @@ import asyncio
 # ============================================================================
 # RACING NOTES WEB APP - STREAMLIT CLOUD VERSION
 # ============================================================================
-# Version: 2.6.1 (Update this number after each deployment)
+# Version: 2.6.7 (Update this number after each deployment)
 # Last Updated: 2024-12-19
 # Description: Streamlit web app for racing notes with Supabase backend
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.6.6"
+APP_VERSION = "2.6.7"
+
+# Quick check for required directories
+if not os.path.exists("data") or not os.path.exists("services"):
+    st.error("❌ Required directories 'data' and 'services' not found!")
+    st.error("Please ensure all files are properly uploaded to your repository.")
+    st.stop()
 
 # Set up environment variables for Streamlit Cloud
 # These should be set in Streamlit Cloud's secrets management
@@ -23,23 +29,24 @@ SUPABASE_URL = st.secrets.get("SUPABASE_URL", os.getenv("SUPABASE_URL", ""))
 SUPABASE_ANON_KEY = st.secrets.get("SUPABASE_ANON_KEY", os.getenv("SUPABASE_ANON_KEY", ""))
 SUPABASE_SERVICE_ROLE = st.secrets.get("SUPABASE_SERVICE_ROLE", os.getenv("SUPABASE_SERVICE_ROLE", ""))
 
-# Import from moved modules - using absolute imports for Streamlit Cloud
+# Import from modules - using absolute imports for Streamlit Cloud
 import sys
 import os
 
-# Ensure current directory is in Python path
+# Ensure current directory is in Python path for local development
 current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
+# Import required modules
 try:
     from data.supabase_client import SupabaseClient
     from data.models import NoteCreate, NoteView, NoteCategory, Track, Series, Driver, Tag, SessionType
     from services.cloud_storage import CloudStorageService
 except ImportError as e:
-    import streamlit as st
-    st.error(f"Import error: {e}")
+    st.error(f"❌ Import error: {e}")
     st.error("Please check that all required files are present in the deployment.")
+    st.error("Make sure you're using 'streamlit_app.py' as your main file path in Streamlit Cloud.")
     st.stop()
 
 # Set up environment variables for SupabaseClient

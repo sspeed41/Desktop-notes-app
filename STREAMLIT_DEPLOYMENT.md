@@ -9,7 +9,7 @@ Make sure your code is pushed to a GitHub repository.
 1. Go to [share.streamlit.io](https://share.streamlit.io)
 2. Click "New app"
 3. Connect your GitHub repository
-4. Set the main file path to: `streamlit_app.py`
+4. **IMPORTANT**: Set the main file path to: `streamlit_app.py` (not app.py!)
 5. Click "Deploy"
 
 ### 3. **Configure Secrets**
@@ -44,6 +44,29 @@ You can access this URL from:
 3. Add tags with small, readable buttons
 4. Upload media files (videos, images)
 5. View your notes feed in Twitter-like format
+
+---
+
+## 🐛 Troubleshooting
+
+### "Main Module Not Found" Error
+If you see this error:
+1. ✅ Make sure your main file path is set to `streamlit_app.py` (not `app.py`)
+2. ✅ Ensure all directories (`data/`, `services/`) are in your repository
+3. ✅ Check that `requirements.txt` is in your repository root
+4. ✅ Try redeploying after pushing any changes
+
+### Import Errors
+If you see import errors:
+1. ✅ Check that all Python files are properly committed to your repository
+2. ✅ Verify that `__init__.py` files exist in `data/` and `services/` directories
+3. ✅ Make sure your secrets are configured correctly
+
+### Can't Connect to Supabase
+If you see connection errors:
+1. ✅ Double-check your secrets configuration
+2. ✅ Verify your Supabase URL and keys are correct
+3. ✅ Make sure your Supabase project is active
 
 ---
 
