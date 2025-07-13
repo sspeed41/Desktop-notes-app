@@ -183,23 +183,25 @@ st.markdown("""
             padding: 4px;
             font-size: 14px;
         }
-        /* Consolidated button styles */
+        /* Small tag button styles */
         .stButton > button {
-            background-color: #FFFFFF !important;  /* White background */
-            color: #000000 !important;  /* Black text for readability */
-            padding: 2px 6px !important;  /* Slightly more padding for readability */
-            font-size: 10px !important;  /* Readable font size */
-            border-radius: 4px !important;
-            border: 1px solid #333333 !important;
+            background-color: #F8F9FA !important;  /* Light gray background */
+            color: #495057 !important;  /* Dark gray text */
+            padding: 1px 4px !important;  /* Very compact padding */
+            font-size: 8px !important;  /* Small readable font */
+            border-radius: 3px !important;
+            border: 1px solid #DEE2E6 !important;
             min-width: auto !important;
-            height: 20px !important;  /* Fixed height for consistency */
+            height: 16px !important;  /* Very small height */
             white-space: nowrap;
-            font-weight: bold !important;
+            font-weight: 500 !important;
+            text-transform: none !important;
+            line-height: 1 !important;
         }
         .stButton > button:hover {
-            background-color: #F0F0F0 !important;
-            color: #000000 !important;
-            border-color: #000000 !important;
+            background-color: #E9ECEF !important;
+            color: #495057 !important;
+            border-color: #ADB5BD !important;
         }
         .stButton > button[type='primary'] {
             background-color: #1D9BF0 !important;  /* Blue for selected */
@@ -250,9 +252,9 @@ st.markdown("""
                 font-size: 10px;
             }
             .stButton > button {
-                font-size: 8px !important;
-                padding: 1px 4px !important;
-                height: 18px !important;
+                font-size: 7px !important;
+                padding: 1px 3px !important;
+                height: 14px !important;
             }
             .stSelectbox > div > div > div {
                 font-size: 12px;
@@ -281,9 +283,9 @@ st.markdown("""
                 line-height: 14px;
             }
             .stButton > button {
-                font-size: 7px !important;
-                padding: 1px 3px !important;
-                height: 16px !important;
+                font-size: 6px !important;
+                padding: 1px 2px !important;
+                height: 12px !important;
             }
         }
     </style>
