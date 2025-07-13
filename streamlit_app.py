@@ -6,21 +6,27 @@ from datetime import datetime
 import mimetypes
 import asyncio
 
+# ============================================================================
+# RACING NOTES WEB APP - STREAMLIT CLOUD VERSION
+# ============================================================================
+# Version: 2.6.1 (Update this number after each deployment)
+# Last Updated: 2024-12-19
+# Description: Streamlit web app for racing notes with Supabase backend
+# ============================================================================
+
+# Version Configuration - Update this for each deployment
+APP_VERSION = "2.6.1"
+
 # Set up environment variables for Streamlit Cloud
 # These should be set in Streamlit Cloud's secrets management
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", os.getenv("SUPABASE_URL", ""))
 SUPABASE_ANON_KEY = st.secrets.get("SUPABASE_ANON_KEY", os.getenv("SUPABASE_ANON_KEY", ""))
 SUPABASE_SERVICE_ROLE = st.secrets.get("SUPABASE_SERVICE_ROLE", os.getenv("SUPABASE_SERVICE_ROLE", ""))
 
-# Try to import from app module, fallback to inline definitions if not available
-try:
-    from app.data.supabase_client import SupabaseClient
-    from app.data.models import NoteCreate, NoteView, NoteCategory, Track, Series, Driver, Tag, SessionType
-    from app.services.cloud_storage import CloudStorageService
-except ImportError:
-    # Fallback: Show error message if app module not available
-    st.error("⚠️ App module not found. Please ensure the full app directory is included in the deployment.")
-    st.stop()
+# Import from moved modules
+from data.supabase_client import SupabaseClient
+from data.models import NoteCreate, NoteView, NoteCategory, Track, Series, Driver, Tag, SessionType
+from services.cloud_storage import CloudStorageService
 
 # Set up environment variables for SupabaseClient
 os.environ["SUPABASE_URL"] = st.secrets.get("SUPABASE_URL", os.getenv("SUPABASE_URL", ""))
@@ -81,7 +87,7 @@ st.markdown(f"""
 st.title("Racing Notes Web App")
 st.markdown(f"""
 <div style="display: inline-block; background: #1DA1F2; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-bottom: 16px;">
-    v2.6.1
+    v{APP_VERSION}
 </div>
 """, unsafe_allow_html=True)
 
