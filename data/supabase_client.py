@@ -482,40 +482,54 @@ class SupabaseClient:
         try:
             logger.debug(f"Processing {len(media_files)} media files for note {note_id}")
             for i, file_info in enumerate(media_files):
-                file_path = file_info['path']
-                file_name = file_info['name']
-                file_size = file_info['size']
-                file_ext = file_info['ext'].lower()
-                
-                # Determine media type
-                if file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']:
-                    media_type = "image"
-                elif file_ext in ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm']:
-                    media_type = "video"
-                elif file_ext in ['.csv', '.xlsx', '.xls']:
-                    media_type = "csv"
+                # Check if this is the new format (already uploaded to storage)
+                if 'file_url' in file_info and 'media_type' in file_info:
+                    # New format: files already uploaded to storage
+                    file_name = file_info['filename']
+                    file_url = file_info['file_url']
+                    media_type = file_info['media_type']
+                    size_mb = file_info.get('size_mb', 0)
+                    
+                    logger.debug(f"Processing uploaded file: {file_name} at {file_url}")
+                    
                 else:
-                    media_type = "video"  # Default to video for unsupported types
-                
-                # Use cloud URL if available, otherwise fallback to local path
-                if 'cloud_url' in file_info and file_info['cloud_url']:
-                    file_url = file_info['cloud_url']
-                    storage_type = file_info.get('storage_type', 'cloud')
-                else:
-                    file_url = f"local://{file_path}"
-                    storage_type = 'local'
+                    # Old format: files need to be processed (legacy support)
+                    file_path = file_info['path']
+                    file_name = file_info['name']
+                    file_size = file_info['size']
+                    file_ext = file_info['ext'].lower()
+                    
+                    # Determine media type
+                    if file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']:
+                        media_type = "image"
+                    elif file_ext in ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm']:
+                        media_type = "video"
+                    elif file_ext in ['.csv', '.xlsx', '.xls']:
+                        media_type = "csv"
+                    else:
+                        media_type = "video"  # Default to video for unsupported types
+                    
+                    # Use cloud URL if available, otherwise fallback to local path
+                    if 'cloud_url' in file_info and file_info['cloud_url']:
+                        file_url = file_info['cloud_url']
+                        storage_type = file_info.get('storage_type', 'cloud')
+                    else:
+                        file_url = f"local://{file_path}"
+                        storage_type = 'local'
+                    
+                    size_mb = round(file_size / (1024 * 1024), 2)
                 
                 # Create media record
                 media_data = {
                     "note_id": str(note_id),
                     "file_url": file_url,
                     "media_type": media_type,
-                    "size_mb": round(file_size / (1024 * 1024), 2),
+                    "size_mb": size_mb,
                     "filename": file_name
                 }
                 
                 self.client.table("media").insert(media_data).execute()
-                logger.debug(f"Attached media: {file_name} ({media_type}) - Storage: {storage_type}")
+                logger.debug(f"Attached media: {file_name} ({media_type}) - URL: {file_url}")
                 
         except Exception as e:
             logger.error(f"Error attaching media files: {e}")

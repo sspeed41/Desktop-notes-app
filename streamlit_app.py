@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.7.6"
+APP_VERSION = "2.8.0"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -443,11 +443,62 @@ if st.session_state.current_user:
             media_files = []
             if uploaded_files:
                 for uploaded_file in uploaded_files:
-                    media_files.append({
-                        'filename': uploaded_file.name,
-                        'content': uploaded_file.read(),
-                        'content_type': uploaded_file.type
-                    })
+                    # Create a temporary file to upload to Supabase storage
+                    import tempfile
+                    import os
+                    from datetime import datetime
+                    
+                    # Create unique filename with timestamp
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    name, ext = os.path.splitext(uploaded_file.name)
+                    unique_filename = f"{name}_{timestamp}{ext}"
+                    
+                    # Determine folder based on file type
+                    file_ext = ext.lower()
+                    if file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']:
+                        folder = "images"
+                        media_type = "image"
+                    elif file_ext in ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm']:
+                        folder = "videos"
+                        media_type = "video"
+                    else:
+                        folder = "files"
+                        media_type = "video"  # Default to video for unsupported types
+                    
+                    # Create storage path
+                    year = datetime.now().strftime("%Y")
+                    month = datetime.now().strftime("%m")
+                    storage_path = f"{folder}/{year}/{month}/{unique_filename}"
+                    
+                    try:
+                        # Upload to Supabase storage
+                        if not supabase.client:
+                            st.error("❌ Supabase client not available for file upload")
+                            continue
+                            
+                        file_content = uploaded_file.read()
+                        response = supabase.client.storage.from_("racing-notes-media").upload(
+                            path=storage_path,
+                            file=file_content,
+                            file_options={"content-type": uploaded_file.type}
+                        )
+                        
+                        # Get public URL
+                        public_url = supabase.client.storage.from_("racing-notes-media").get_public_url(storage_path)
+                        
+                        # Add to media files list
+                        media_files.append({
+                            'filename': uploaded_file.name,
+                            'file_url': public_url,
+                            'media_type': media_type,
+                            'size_mb': len(file_content) / (1024 * 1024)
+                        })
+                        
+                        st.success(f"✅ Uploaded {uploaded_file.name} to cloud storage")
+                        
+                    except Exception as e:
+                        st.error(f"❌ Failed to upload {uploaded_file.name}: {str(e)}")
+                        # Continue with other files even if one fails
             
             # Context info
             context_info = {
