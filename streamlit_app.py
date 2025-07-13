@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.7.1"
+APP_VERSION = "2.7.2"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -183,27 +183,27 @@ st.markdown("""
             padding: 4px;
             font-size: 14px;
         }
-        /* X/Twitter style pill tag buttons - Clean and minimalistic */
+        /* X/Twitter style pill tag buttons - Compact and space-efficient */
         div[data-testid="stButton"] > button,
         .stButton > button,
         button[kind="secondary"] {
             background-color: #F7F9FA !important;  /* Very light gray like X */
             color: #536471 !important;  /* X gray text color */
-            padding: 2px 8px !important;  /* More comfortable padding */
-            font-size: 11px !important;  /* More readable font size */
-            border-radius: 20px !important;  /* Perfect pill shape */
+            padding: 1px 6px !important;  /* Very compact padding */
+            font-size: 9px !important;  /* Smaller font size */
+            border-radius: 8px !important;  /* Less rounded, more compact */
             border: 1px solid #E1E8ED !important;  /* Subtle border */
             min-width: auto !important;
             max-width: none !important;
             width: auto !important;
-            height: 18px !important;  /* More comfortable height */
+            height: 14px !important;  /* Much smaller height */
             white-space: nowrap !important;
             font-weight: 400 !important;  /* Normal weight like X */
             text-transform: none !important;
             line-height: 1 !important;
             box-sizing: border-box !important;
             transition: all 0.15s ease !important;  /* Quick smooth transitions */
-            margin: 2px 3px !important;  /* Proper spacing to prevent overlap */
+            margin: 1px !important;  /* Minimal spacing for symmetry */
             display: inline-flex !important;  /* Better alignment */
             align-items: center !important;
             justify-content: center !important;
@@ -222,10 +222,10 @@ st.markdown("""
             background-color: #1D9BF0 !important;  /* X blue for selected */
             color: white !important;
             border-color: #1D9BF0 !important;
-            font-size: 11px !important;  /* Consistent readable font */
-            height: 18px !important;  /* Consistent height */
-            padding: 2px 8px !important;  /* Consistent padding */
-            border-radius: 20px !important;  /* Perfect pill shape */
+            font-size: 9px !important;  /* Consistent small font */
+            height: 14px !important;  /* Consistent small height */
+            padding: 1px 6px !important;  /* Consistent padding */
+            border-radius: 8px !important;  /* Less rounded */
         }
         div[data-testid="stButton"] > button[type='primary']:hover,
         .stButton > button[type='primary']:hover,
@@ -276,11 +276,11 @@ st.markdown("""
             .stButton > button,
             button[kind="secondary"],
             button[kind="primary"] {
-                font-size: 10px !important;  /* Slightly smaller on mobile but still readable */
-                padding: 2px 6px !important;  /* Compact mobile padding */
-                height: 16px !important;  /* Slightly smaller on mobile */
-                margin: 2px !important;  /* Consistent spacing */
-                border-radius: 16px !important;  /* Maintain pill shape */
+                font-size: 8px !important;  /* Even smaller on mobile */
+                padding: 1px 4px !important;  /* Compact mobile padding */
+                height: 12px !important;  /* Smaller on mobile */
+                margin: 1px !important;  /* Consistent minimal spacing */
+                border-radius: 6px !important;  /* Maintain compact shape */
             }
             .stSelectbox > div > div > div {
                 font-size: 12px;
@@ -312,11 +312,11 @@ st.markdown("""
             .stButton > button,
             button[kind="secondary"],
             button[kind="primary"] {
-                font-size: 9px !important;  /* Smallest size but still readable */
-                padding: 1px 5px !important;  /* Minimal padding */
-                height: 14px !important;  /* Smallest height */
-                margin: 1px !important;  /* Minimal spacing */
-                border-radius: 14px !important;  /* Maintain pill shape */
+                font-size: 7px !important;  /* Very small but still readable */
+                padding: 1px 3px !important;  /* Minimal padding */
+                height: 10px !important;  /* Smallest height */
+                margin: 0.5px !important;  /* Minimal spacing */
+                border-radius: 4px !important;  /* Maintain compact shape */
             }
         }
     </style>
@@ -378,14 +378,8 @@ if st.session_state.current_user:
     
     # Create a flowing layout with better spacing
     if tags and len(tags) > 0:
-        # Create a container for tags with custom HTML for better flow
-        st.markdown("""
-            <div style="margin-bottom: 8px;">
-                <div style="display: flex; flex-wrap: wrap; gap: 2px; align-items: center;">
-        """, unsafe_allow_html=True)
-        
-        # Create columns for tags in groups of 6 for better flow
-        tags_per_row = 6
+        # Create columns for tags with better space utilization
+        tags_per_row = 8  # Increased from 6 to fit more tags per row
         for i in range(0, len(tags), tags_per_row):
             batch = tags[i:i + tags_per_row]
             cols = st.columns(len(batch))
@@ -401,8 +395,6 @@ if st.session_state.current_user:
                         help='Selected' if is_selected else 'Not selected', 
                         type='primary' if is_selected else 'secondary'
                     )
-        
-        st.markdown("</div></div>", unsafe_allow_html=True)
     else:
         st.info("No tags available - check Supabase connection")
 
