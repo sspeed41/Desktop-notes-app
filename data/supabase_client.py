@@ -570,6 +570,88 @@ class SupabaseClient:
             logger.error(f"Error subscribing to notes: {e}")
         return None
 
+    async def search_media_by_criteria(self, driver_name: Optional[str] = None, track_name: Optional[str] = None, 
+                                      series_name: Optional[str] = None, tag_name: Optional[str] = None, 
+                                      session_type: Optional[str] = None) -> List[dict]:
+        """Search for media files by various criteria"""
+        if not self.is_connected or not self.client:
+            return []
+            
+        try:
+            # Start with base query joining media with note_view
+            query = self.client.table("media").select("""
+                *,
+                note_view!inner(
+                    driver_name,
+                    track_name,
+                    series_name,
+                    session_type,
+                    tags,
+                    body,
+                    created_by,
+                    created_at
+                )
+            """)
+            
+            # Apply filters only when values are provided
+            if driver_name is not None:
+                query = query.eq("note_view.driver_name", driver_name)
+            if track_name is not None:
+                query = query.eq("note_view.track_name", track_name)
+            if series_name is not None:
+                query = query.eq("note_view.series_name", series_name)
+            if session_type is not None:
+                query = query.eq("note_view.session_type", session_type)
+            if tag_name is not None:
+                query = query.contains("note_view.tags", [tag_name])
+            
+            response = query.order("created_at", desc=True).execute()
+            
+            # Format results
+            media_results = []
+            for item in response.data:
+                media_info = {
+                    'media_id': item['id'],
+                    'file_url': item['file_url'],
+                    'media_type': item['media_type'],
+                    'filename': item['filename'],
+                    'size_mb': item['size_mb'],
+                    'created_at': item['created_at'],
+                    'note_context': {
+                        'driver_name': item['note_view']['driver_name'],
+                        'track_name': item['note_view']['track_name'],
+                        'series_name': item['note_view']['series_name'],
+                        'session_type': item['note_view']['session_type'],
+                        'tags': item['note_view']['tags'],
+                        'note_body': item['note_view']['body'],
+                        'created_by': item['note_view']['created_by'],
+                        'note_created_at': item['note_view']['created_at']
+                    }
+                }
+                media_results.append(media_info)
+            
+            return media_results
+            
+        except Exception as e:
+            logger.error(f"Error searching media: {e}")
+            return []
+
+    async def get_media_for_driver(self, driver_name: str) -> List[dict]:
+        """Get all media for a specific driver"""
+        return await self.search_media_by_criteria(driver_name=driver_name)
+    
+    async def get_media_for_track(self, track_name: str) -> List[dict]:
+        """Get all media for a specific track"""
+        return await self.search_media_by_criteria(track_name=track_name)
+    
+    async def get_media_for_series(self, series_name: str) -> List[dict]:
+        """Get all media for a specific series"""
+        return await self.search_media_by_criteria(series_name=series_name)
+    
+    async def get_media_for_tag(self, tag_name: str) -> List[dict]:
+        """Get all media with a specific tag"""
+        return await self.search_media_by_criteria(tag_name=tag_name)
+
 
 # Global instance
 supabase_client = SupabaseClient() 

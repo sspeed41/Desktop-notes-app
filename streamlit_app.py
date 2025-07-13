@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.8.0"
+APP_VERSION = "2.9.0"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -350,7 +350,34 @@ if st.session_state.current_user:
         default_session_type = st.selectbox("Default Session Type", options=[s.value for s in SessionType], key="default_session_type")
         # Placeholder for future filters
         st.subheader("Filters")
-        st.text_input("Search Notes")
+        search_text = st.text_input("Search Notes")
+        
+        # Media Search Section
+        st.subheader("🎥 Media Search")
+        st.caption("Find media by context")
+        
+        # Media search controls
+        media_search_driver = st.selectbox("Search by Driver", options=["Any"] + [d.name for d in drivers], key="media_driver")
+        media_search_track = st.selectbox("Search by Track", options=["Any"] + [t.name for t in tracks], key="media_track") 
+        media_search_series = st.selectbox("Search by Series", options=["Any", "CUP", "XFINITY", "TRUCK"], key="media_series")
+        media_search_tag = st.selectbox("Search by Tag", options=["Any"] + [t.label for t in tags], key="media_tag")
+        
+        if st.button("🔍 Search Media", key="search_media_btn"):
+            # Build search criteria
+            search_criteria = {}
+            if media_search_driver != "Any":
+                search_criteria['driver_name'] = media_search_driver
+            if media_search_track != "Any":
+                search_criteria['track_name'] = media_search_track
+            if media_search_series != "Any":
+                search_criteria['series_name'] = media_search_series
+            if media_search_tag != "Any":
+                search_criteria['tag_name'] = media_search_tag
+            
+            # Store search criteria in session state
+            st.session_state.media_search_criteria = search_criteria
+            st.session_state.show_media_results = True
+            st.rerun()
 
     # Main area: Compact note creation at top
     st.markdown('<div class="create-form">', unsafe_allow_html=True)
@@ -527,7 +554,85 @@ if st.session_state.current_user:
         else:
             st.warning("⚠️ Please enter some text for your note")
     st.markdown('</div>', unsafe_allow_html=True)
-
+    
+    # Media Search Results Section
+    if hasattr(st.session_state, 'show_media_results') and st.session_state.show_media_results:
+        if hasattr(st.session_state, 'media_search_criteria'):
+            search_criteria = st.session_state.media_search_criteria
+            
+            st.header("🎥 Media Search Results")
+            
+            # Build display title for search criteria
+            criteria_parts = []
+            if 'driver_name' in search_criteria:
+                criteria_parts.append(f"Driver: {search_criteria['driver_name']}")
+            if 'track_name' in search_criteria:
+                criteria_parts.append(f"Track: {search_criteria['track_name']}")
+            if 'series_name' in search_criteria:
+                criteria_parts.append(f"Series: {search_criteria['series_name']}")
+            if 'tag_name' in search_criteria:
+                criteria_parts.append(f"Tag: {search_criteria['tag_name']}")
+            
+            criteria_text = " | ".join(criteria_parts) if criteria_parts else "All Media"
+            st.caption(f"Searching for: {criteria_text}")
+            
+            # Search for media
+            try:
+                with st.spinner("Searching media..."):
+                    media_results = asyncio.run(supabase.search_media_by_criteria(**search_criteria))
+                
+                if media_results:
+                    st.success(f"Found {len(media_results)} media files")
+                    
+                    # Display media files in a grid
+                    cols_per_row = 3
+                    for i in range(0, len(media_results), cols_per_row):
+                        cols = st.columns(cols_per_row)
+                        for j, media in enumerate(media_results[i:i+cols_per_row]):
+                            with cols[j]:
+                                # Media card
+                                context = media['note_context']
+                                media_type_icon = "🎥" if media['media_type'] == 'video' else "📷" if media['media_type'] == 'image' else "📄"
+                                
+                                st.markdown(f"""
+                                <div style="border: 1px solid #E1E8ED; border-radius: 8px; padding: 8px; margin-bottom: 8px;">
+                                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 4px;">
+                                        {media_type_icon} {media['filename']}
+                                    </div>
+                                    <div style="font-size: 12px; color: #536471; margin-bottom: 4px;">
+                                        📍 {context['track_name']} • 👤 {context['driver_name'] or 'No driver'}
+                                    </div>
+                                    <div style="font-size: 12px; color: #536471; margin-bottom: 4px;">
+                                        🏎️ {context['series_name']} • ⏱️ {context['session_type']}
+                                    </div>
+                                    <div style="font-size: 11px; color: #536471; margin-bottom: 8px;">
+                                        By {context['created_by']} • {media['size_mb']:.1f}MB
+                                    </div>
+                                    <div style="font-size: 10px; color: #1D9BF0; margin-bottom: 8px;">
+                                        {' '.join([f'#{tag}' for tag in context['tags']]) if context['tags'] else 'No tags'}
+                                    </div>
+                                    <a href="{media['file_url']}" target="_blank" style="
+                                        display: inline-block;
+                                        background: #1D9BF0;
+                                        color: white;
+                                        padding: 4px 8px;
+                                        border-radius: 4px;
+                                        text-decoration: none;
+                                        font-size: 12px;
+                                    ">🔗 View File</a>
+                                </div>
+                                """, unsafe_allow_html=True)
+                else:
+                    st.info("No media found matching your search criteria")
+                    
+            except Exception as e:
+                st.error(f"Error searching media: {str(e)}")
+            
+            # Add button to clear results
+            if st.button("❌ Clear Results", key="clear_media_results"):
+                st.session_state.show_media_results = False
+                st.rerun()
+    
     # Recent Notes feed - compact scrolling list
     st.header("Home")  # X-like
     try:
