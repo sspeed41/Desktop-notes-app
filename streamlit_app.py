@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.9.0"
+APP_VERSION = "2.9.1"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -395,9 +395,9 @@ if st.session_state.current_user:
     with col1:
         track = st.selectbox("Track", options=[t.name for t in tracks], label_visibility="collapsed", index=[t.name for t in tracks].index(default_track) if default_track else 0)
     with col2:
-        series = st.selectbox("Series", options=["CUP", "XFINITY", "TRUCK"], label_visibility="collapsed", index=["CUP", "XFINITY", "TRUCK"].index(default_series) if default_series else 0)
+        series = st.selectbox("Series", options=["None (General)", "CUP", "XFINITY", "TRUCK"], label_visibility="collapsed", index=["None (General)", "CUP", "XFINITY", "TRUCK"].index(default_series) if default_series and default_series in ["CUP", "XFINITY", "TRUCK"] else 0)
     with col3:
-        session_type = st.selectbox("Session Type", options=[s.value for s in SessionType], label_visibility="collapsed", index=[s.value for s in SessionType].index(default_session_type) if default_session_type else 0)
+        session_type = st.selectbox("Session Type", options=["None (General)"] + [s.value for s in SessionType], label_visibility="collapsed", index=(["None (General)"] + [s.value for s in SessionType]).index(default_session_type) if default_session_type and default_session_type in [s.value for s in SessionType] else 0)
     with col4:
         driver = st.selectbox("Driver (Optional)", options=["None"] + [d.name for d in drivers], label_visibility="collapsed")
     
@@ -530,8 +530,8 @@ if st.session_state.current_user:
             # Context info
             context_info = {
                 'track': selected_track,  # Pass track object instead of string
-                'series': series,  # Changed from 'series_name' to 'series'
-                'session_type': session_type,
+                'series': series if series != "None (General)" else None,  # Handle None selection
+                'session_type': session_type if session_type != "None (General)" else None,  # Handle None selection
                 'driver_name': driver if driver != "None" else None,
                 'tags': st.session_state.selected_tags
             }

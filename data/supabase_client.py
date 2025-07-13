@@ -126,6 +126,7 @@ class SupabaseClient:
             response = self.client.table("session").insert(data).execute()
             if response.data:
                 return Session(**response.data[0])
+                
         except Exception as e:
             logger.error(f"Error creating session: {e}")
         return None
@@ -266,16 +267,18 @@ class SupabaseClient:
             return None
         assert self.client
         try:
-            # First, find or create the session
-            session_id = await self._find_or_create_session(context_info)
-            
-            if not session_id:
-                logger.error("Failed to find or create a session for the note.")
-                return None
+            # Try to find or create a session (may be None for general notes)
+            session_id = None
+            if context_info.get('series') and context_info.get('session_type'):
+                # Only create session if we have series and session_type
+                session_id = await self._find_or_create_session(context_info)
+                if not session_id:
+                    logger.warning("Failed to find or create a session, creating note without session.")
             
             # Prepare note data
             note_data = note_create.model_dump()
-            note_data["session_id"] = str(session_id)
+            if session_id:
+                note_data["session_id"] = str(session_id)
             note_data["created_by"] = created_by
             
             # Convert driver_id to string if it exists
@@ -324,9 +327,9 @@ class SupabaseClient:
                     # The following fields might not be immediately available
                     driver_name=context_info.get("driver_name"),
                     session_date=context_info.get("date"),
-                    session_type=context_info.get("session"),
-                    track_name=context_info.get("track_name"),
-                    series_name=context_info.get("series_name"),
+                    session_type=context_info.get("session_type"),
+                    track_name=context_info.get("track", {}).get("name") if context_info.get("track") else None,
+                    series_name=context_info.get("series"),
                     tags=[], # Tags might not be populated immediately
                     media_files=[] # Media files might not be populated immediately
                 )
