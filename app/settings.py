@@ -20,7 +20,7 @@ ORG_ID = os.getenv("ORG_ID", "default-org")
 
 # Application settings
 APP_NAME = "Wise Desktop Note App"
-APP_VERSION = "2.5.0"
+APP_VERSION = "2.6.0"
 
 # UI Constants - X/Twitter-inspired minimal design
 COLORS = {

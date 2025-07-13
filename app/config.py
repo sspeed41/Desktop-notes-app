@@ -58,7 +58,7 @@ class CacheConfig(BaseModel):
 class AppConfig(BaseModel):
     """Main application configuration"""
     name: str = Field(default="Racing Notes")
-    version: str = Field(default="2.6.0")
+    version: str = Field(default="2.6.1")
     organization: str = Field(default="RacingNotes")
     org_id: str = Field(default="default-org")
     

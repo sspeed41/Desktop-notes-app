@@ -2,52 +2,72 @@ import streamlit as st
 import os
 from uuid import UUID
 from typing import List, Optional
-from app.data.supabase_client import SupabaseClient
-from app.data.models import NoteCreate, NoteView, NoteCategory, Track, Series, Driver, Tag, SessionType
-import asyncio
-from dotenv import load_dotenv
 from datetime import datetime
 import mimetypes
-from app.services.cloud_storage import CloudStorageService
+import asyncio
 
-# Define relative_time early
-def relative_time(dt: datetime) -> str:
-    delta = datetime.now(dt.tzinfo) - dt
-    days = delta.days
-    if days > 0:
-        return f"{days}d ago"
-    hours = delta.seconds // 3600
-    if hours > 0:
-        return f"{hours}h ago"
-    minutes = delta.seconds // 60
-    if minutes > 0:
-        return f"{minutes}m ago"
-    else:
-        return f"{delta.seconds}s ago"
+# Set up environment variables for Streamlit Cloud
+# These should be set in Streamlit Cloud's secrets management
+SUPABASE_URL = st.secrets.get("SUPABASE_URL", os.getenv("SUPABASE_URL", ""))
+SUPABASE_ANON_KEY = st.secrets.get("SUPABASE_ANON_KEY", os.getenv("SUPABASE_ANON_KEY", ""))
+SUPABASE_SERVICE_ROLE = st.secrets.get("SUPABASE_SERVICE_ROLE", os.getenv("SUPABASE_SERVICE_ROLE", ""))
 
-# Initialize Supabase client
-load_dotenv()
+# Try to import from app module, fallback to inline definitions if not available
+try:
+    from app.data.supabase_client import SupabaseClient
+    from app.data.models import NoteCreate, NoteView, NoteCategory, Track, Series, Driver, Tag, SessionType
+    from app.services.cloud_storage import CloudStorageService
+except ImportError:
+    # Fallback: Show error message if app module not available
+    st.error("⚠️ App module not found. Please ensure the full app directory is included in the deployment.")
+    st.stop()
 
-# Initialize Supabase client
+# Set up environment variables for SupabaseClient
+os.environ["SUPABASE_URL"] = st.secrets.get("SUPABASE_URL", os.getenv("SUPABASE_URL", ""))
+os.environ["SUPABASE_ANON_KEY"] = st.secrets.get("SUPABASE_ANON_KEY", os.getenv("SUPABASE_ANON_KEY", ""))
+os.environ["SUPABASE_SERVICE_ROLE"] = st.secrets.get("SUPABASE_SERVICE_ROLE", os.getenv("SUPABASE_SERVICE_ROLE", ""))
+
+# Now initialize SupabaseClient - it will use os.getenv
 supabase = SupabaseClient()
 supabase.connect()
 cloud_storage = CloudStorageService(supabase)
 
-# Fetch metadata
+# Define relative_time early
+def relative_time(dt: datetime) -> str:
+    delta = datetime.now(dt.tzinfo) - dt
+    if delta.days > 0:
+        return f"{delta.days}d ago"
+    elif delta.seconds > 3600:
+        return f"{delta.seconds // 3600}h ago"
+    elif delta.seconds > 60:
+        return f"{delta.seconds // 60}m ago"
+    else:
+        return f"{delta.seconds}s ago"
+
+# Initialize Supabase client
+# supabase = SupabaseClient()
+# supabase.connect()
+# cloud_storage = CloudStorageService(supabase)
+
+# Fetch metadata with error handling
+tracks = []
+drivers = []
+tags = []
+
 try:
     tracks = asyncio.run(supabase.get_tracks())
 except Exception as e:
-    tracks = []
+    st.warning(f"Failed to load tracks: {str(e)}")
 
 try:
     drivers = asyncio.run(supabase.get_drivers())
 except Exception as e:
-    drivers = []
+    st.warning(f"Failed to load drivers: {str(e)}")
 
 try:
     tags = asyncio.run(supabase.get_tags())
 except Exception as e:
-    tags = []
+    st.warning(f"Failed to load tags: {str(e)}")
 
 # Compact status indicator
 status_icon = "🟢" if supabase.is_connected else "🔴"
@@ -302,73 +322,72 @@ if st.session_state.current_user:
     row2_tags = tags[mid:]
     
     # Row 1
-    cols1 = st.columns(len(row1_tags))
-    for i, t in enumerate(row1_tags):
-        with cols1[i]:
-            is_selected = t.label in st.session_state.selected_tags
-            st.button(t.label, key=f'tag_{t.id}_row1', on_click=toggle_tag, args=(t.label,), help='Selected' if is_selected else 'Not selected', type='primary' if is_selected else 'secondary')
-    
+    if len(row1_tags) > 0:
+        cols1 = st.columns(len(row1_tags))
+        for i, t in enumerate(row1_tags):
+            with cols1[i]:
+                is_selected = t.label in st.session_state.selected_tags
+                st.button(t.label, key=f'tag_{t.id}_row1', on_click=toggle_tag, args=(t.label,), help='Selected' if is_selected else 'Not selected', type='primary' if is_selected else 'secondary')
+    else:
+        st.info("No tags available - check Supabase connection")
+
     # Row 2
-    cols2 = st.columns(len(row2_tags))
-    for i, t in enumerate(row2_tags):
-        with cols2[i]:
-            is_selected = t.label in st.session_state.selected_tags
-            st.button(t.label, key=f'tag_{t.id}_row2', on_click=toggle_tag, args=(t.label,), help='Selected' if is_selected else 'Not selected', type='primary' if is_selected else 'secondary')
-    
-    # Add media upload
+    if len(row2_tags) > 0:
+        cols2 = st.columns(len(row2_tags))
+        for i, t in enumerate(row2_tags):
+            with cols2[i]:
+                is_selected = t.label in st.session_state.selected_tags
+                st.button(t.label, key=f'tag_{t.id}_row2', on_click=toggle_tag, args=(t.label,), help='Selected' if is_selected else 'Not selected', type='primary' if is_selected else 'secondary')
+    else:
+        st.info("No additional tags available")
+
+    # Add media upload (always show)
     uploaded_files = st.file_uploader("Attach media", type=['jpg', 'png', 'gif', 'mp4', 'mov', 'avi'], accept_multiple_files=True, label_visibility="collapsed")
     
-    if st.button("Post"):  # X-like button
-        context_info = {
-            'track': next(t for t in tracks if t.name == track),
-            'series': series,
-            'session_type': session_type
-        }
-        driver_id = next((d.id for d in drivers if d.name == driver), None) if driver != "None" else None
-        selected_labels = st.session_state.selected_tags
-        tag_ids = [t.id for t in tags if t.label in selected_labels and t.id is not None]
-        note_create = NoteCreate(
-            body=body,
-            driver_id=driver_id,
-            category=NoteCategory.GENERAL,
-            tag_ids=tag_ids
-        )
-        
-        # Handle media uploads
-        media_files = []
-        if uploaded_files:
-            for file in uploaded_files:
-                temp_path = os.path.join('/tmp', file.name)
-                try:
-                    with open(temp_path, 'wb') as f:
-                        f.write(file.getvalue())
-                    public_url = asyncio.run(cloud_storage.upload_file(temp_path))
-                    if public_url:
-                        file_info = cloud_storage.get_file_info(temp_path)
-                        if file_info is not None:
-                            file_info['cloud_url'] = public_url
-                            file_info['storage_type'] = 'cloud'
-                            media_files.append(file_info)
-                        else:
-                            st.error(f"Failed to get info for file {file.name}")
-                    else:
-                        st.error(f"Failed to upload file {file.name}")
-                except Exception as e:
-                    st.error(f"Error uploading {file.name}: {str(e)}")
-                finally:
-                    if os.path.exists(temp_path):
-                        os.remove(temp_path)
-        
-        try:
-            new_note = asyncio.run(supabase.create_note_with_context(note_create, context_info, media_files=media_files, created_by=st.session_state.current_user))
-            if new_note:
-                st.success("Note posted!")
-                st.session_state.selected_tags = []  # Clear selections
-            else:
-                st.error("Failed to post note - no response from database")
-        except Exception as e:
-            st.error(f"Error creating note: {str(e)}")
-        st.rerun()
+    # Post button
+    if st.button("Post", type="primary"):
+        if body.strip():
+            # Find selected track and driver objects
+            selected_track = next((t for t in tracks if t.name == track), None)
+            selected_driver = next((d for d in drivers if d.name == driver), None) if driver != "None" else None
+            
+            # Create note
+            note_create = NoteCreate(
+                body=body,
+                driver_id=selected_driver.id if selected_driver else None,
+                category=NoteCategory.GENERAL,
+                tag_ids=[tag.id for tag in tags if tag.label in st.session_state.selected_tags and tag.id is not None]
+            )
+            
+            # Handle media files
+            media_files = []
+            if uploaded_files:
+                for uploaded_file in uploaded_files:
+                    media_files.append({
+                        'filename': uploaded_file.name,
+                        'content': uploaded_file.read(),
+                        'content_type': uploaded_file.type
+                    })
+            
+            # Context info
+            context_info = {
+                'track_name': track,
+                'series_name': series,
+                'session_type': session_type,
+                'driver_name': driver if driver != "None" else None,
+                'tags': st.session_state.selected_tags
+            }
+            
+            try:
+                new_note = asyncio.run(supabase.create_note_with_context(note_create, context_info, media_files=media_files, created_by=st.session_state.current_user))
+                if new_note:
+                    st.success("Note posted!")
+                    st.session_state.selected_tags = []  # Clear selections
+                else:
+                    st.error("Failed to post note - no response from database")
+            except Exception as e:
+                st.error(f"Error creating note: {str(e)}")
+            st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
     # Recent Notes feed - compact scrolling list
@@ -378,30 +397,23 @@ if st.session_state.current_user:
     except Exception as e:
         st.error(f"Error fetching notes: {str(e)}")
         notes = []
-    if notes:
-        for note in notes:
-            rel_time = relative_time(note.created_at)
-            driver_str = f"Driver: {note.driver_name or 'N/A'}"
-            track_str = f"Track: {note.track_name or 'N/A'}"
-            session_str = f"Session: {note.session_type.value if note.session_type else 'N/A'} on {note.session_date or 'N/A'}"
-            vehicle_str = f"{note.series_name or 'N/A'}"
-            metadata = " · ".join([driver_str, track_str, session_str, vehicle_str])
-            tags_str = " ".join([f"#{tag}" for tag in note.tags]) if note.tags else ""
-            html = f"""
-            <div class="note-card">
-                <div class="header">
-                    <span class="avatar">🧑</span>
-                    <span class="author">{note.created_by}</span>
-                    <span class="timestamp">· {rel_time}</span>
-                </div>
-                <p class="body">{note.body}</p>
-                <p class="metadata">{metadata}</p>
-                <p class="tags">{tags_str}</p>
-                <div class="actions">
-                    <span>💬</span> <span>🔁</span> <span>❤️</span> <span>📊</span> <span>🔖</span>
-                </div>
+    
+    for note in notes:
+        # Note card
+        st.markdown(f"""
+        <div class="note-card">
+            <div class="header">
+                <div class="avatar">🏁</div>
+                <div class="author">{note.created_by}</div>
+                <div class="timestamp">{relative_time(note.created_at)}</div>
             </div>
-            """
-            st.markdown(html, unsafe_allow_html=True)
-    else:
-        st.info("No notes yet. Post one above!") 
+            <div class="body">{note.body}</div>
+            <div class="metadata">
+                📍 {note.track_name or 'Unknown Track'} • 
+                🏎️ {note.series_name or 'Unknown Series'} • 
+                ⏱️ {note.session_type.value if note.session_type else 'Unknown Session'}
+                {f' • 👤 {note.driver_name}' if note.driver_name else ''}
+            </div>
+            {f'<div class="tags">{"  ".join([f"#{tag}" for tag in note.tags]) if note.tags else ""}</div>' if note.tags else ''}
+        </div>
+        """, unsafe_allow_html=True) 

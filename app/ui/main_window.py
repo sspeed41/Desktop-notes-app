@@ -49,8 +49,8 @@ class MainWindow(QMainWindow):
     def setup_ui(self) -> None:
         """Setup the main UI layout"""
         self.setWindowTitle(f"Racing Notes v{__version__}")
-        self.setMinimumSize(1400, 800)
-        self.resize(1600, 1000)
+        self.setMinimumSize(800, 600)  # Much smaller minimum for small windows
+        self.resize(1200, 800)  # Smaller default size
         
         # Central widget
         central_widget = QWidget()
@@ -64,12 +64,14 @@ class MainWindow(QMainWindow):
         # Top bar
         self.setup_top_bar(main_layout)
         
-        # Create splitter for 50/50 layout
+        # Create splitter for responsive layout
         splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.setChildrenCollapsible(False)  # Prevent panels from collapsing
         main_layout.addWidget(splitter)
         
         # Left side - Feed view
         feed_container = QWidget()
+        feed_container.setMinimumWidth(350)  # Minimum width for feed
         feed_layout = QVBoxLayout(feed_container)
         feed_layout.setContentsMargins(0, 0, 0, 0)
         
@@ -87,11 +89,16 @@ class MainWindow(QMainWindow):
         
         # Right side - Note creation panel
         self.note_panel = NoteCreationPanel()
+        self.note_panel.setMinimumWidth(400)  # Minimum width for note panel
         self.note_panel.note_created.connect(self.on_note_created)
         splitter.addWidget(self.note_panel)
         
-        # Set splitter proportions (50/50)
-        splitter.setSizes([800, 800])
+        # Set splitter to be flexible - stretch factors allow dynamic sizing
+        splitter.setStretchFactor(0, 1)  # Feed view can stretch
+        splitter.setStretchFactor(1, 1)  # Note panel can stretch
+        
+        # Set initial proportions based on window size
+        splitter.setSizes([400, 400])
         
         logger.debug("UI setup complete")
     
@@ -113,15 +120,16 @@ class MainWindow(QMainWindow):
         
         # Version badge
         version_label = QLabel(f"v{self.config.version}")
-        version_label.setFont(QFont(self.ui_config.fonts["secondary"], 11, QFont.Weight.Bold))
+        version_label.setFont(QFont(self.ui_config.fonts["secondary"], 12, QFont.Weight.Bold))
         version_label.setObjectName("versionLabel")
         version_label.setStyleSheet(f"""
             QLabel#versionLabel {{
                 background-color: {self.ui_config.colors['primary']};
                 color: white;
-                padding: 4px 8px;
-                border-radius: 12px;
-                margin-left: 8px;
+                padding: 6px 12px;
+                border-radius: 14px;
+                margin-left: 10px;
+                font-weight: bold;
             }}
         """)
         title_container.addWidget(version_label)

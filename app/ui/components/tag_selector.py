@@ -93,27 +93,28 @@ class TagSelector(QWidget):
             }
             
             #compactTagButton {
-                background-color: #E0E0E0;
+                background-color: #FFFFFF;
                 color: #000000;
-                border: 1px solid #999999;
-                border-radius: 6px;
-                padding: 0px 3px;
-                font-size: 7px;
-                font-weight: normal;
-                min-width: 20px;
-                max-height: 15px;
+                border: 1px solid #333333;
+                border-radius: 3px;
+                padding: 0px 2px;
+                font-size: 6px;
+                font-weight: bold;
+                min-width: 12px;
+                max-height: 8px;
                 margin: 0px;
             }
             
             #compactTagButton:hover {
-                background-color: #CCCCCC;
-                border-color: #666666;
+                background-color: #F0F0F0;
+                border-color: #000000;
             }
             
             #compactTagButton:checked {
                 background-color: #1DA1F2;
                 color: white;
                 border-color: #1DA1F2;
+                font-weight: bold;
             }
         """)
     
