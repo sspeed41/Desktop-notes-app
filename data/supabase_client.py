@@ -6,7 +6,7 @@ import os
 from typing import List, Optional, Dict, Any
 from uuid import UUID
 from supabase import create_client, Client
-from app.data.models import *
+from data.models import *
 import json
 import logging
 from datetime import datetime
@@ -195,7 +195,7 @@ class SupabaseClient:
                 if note_data.get('media_files') and note_data['media_files']:
                     try:
                         # media_files is already a list of dicts from JSONB
-                        from app.data.models import MediaInfo, MediaType
+                        from data.models import MediaInfo, MediaType
                         
                         for media_item in note_data['media_files']:
                             if media_item and media_item.get('file_url'):
@@ -224,7 +224,7 @@ class SupabaseClient:
                     for url in note_data['media_urls']:
                         if url:  # Skip None values
                             # Determine media type from file extension
-                            from app.data.models import MediaInfo, MediaType
+                            from data.models import MediaInfo, MediaType
                             import os
                             
                             filename = os.path.basename(url.replace('local://', ''))

@@ -9,10 +9,10 @@ from typing import List, Optional, Dict, Any
 from PySide6.QtCore import QObject, Signal
 from uuid import UUID
 
-from app.data.models import *
-from app.data.supabase_client import SupabaseClient
-from app.data.cache import OfflineCache
-from app.services.cloud_storage import CloudStorageService
+from data.models import *
+from data.supabase_client import SupabaseClient
+from data.cache import OfflineCache
+from services.cloud_storage import CloudStorageService
 
 logger = logging.getLogger(__name__)
 

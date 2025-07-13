@@ -9,8 +9,14 @@ from datetime import datetime
 from pathlib import Path
 import mimetypes
 
-from app.data.supabase_client import SupabaseClient
-from app.utils.exceptions import MediaUploadError, MediaSizeError
+from data.supabase_client import SupabaseClient
+
+# Define exceptions inline since we removed app.utils.exceptions
+class MediaUploadError(Exception):
+    pass
+
+class MediaSizeError(Exception):
+    pass
 
 logger = logging.getLogger(__name__)
 
