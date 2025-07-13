@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.6.8"
+APP_VERSION = "2.6.9"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -183,8 +183,10 @@ st.markdown("""
             padding: 4px;
             font-size: 14px;
         }
-        /* Small tag button styles */
-        .stButton > button {
+        /* Small tag button styles - High specificity */
+        div[data-testid="stButton"] > button,
+        .stButton > button,
+        button[kind="secondary"] {
             background-color: #F8F9FA !important;  /* Light gray background */
             color: #495057 !important;  /* Dark gray text */
             padding: 1px 4px !important;  /* Very compact padding */
@@ -192,23 +194,35 @@ st.markdown("""
             border-radius: 3px !important;
             border: 1px solid #DEE2E6 !important;
             min-width: auto !important;
+            max-width: none !important;
+            width: auto !important;
             height: 16px !important;  /* Very small height */
-            white-space: nowrap;
+            white-space: nowrap !important;
             font-weight: 500 !important;
             text-transform: none !important;
             line-height: 1 !important;
+            box-sizing: border-box !important;
         }
-        .stButton > button:hover {
+        div[data-testid="stButton"] > button:hover,
+        .stButton > button:hover,
+        button[kind="secondary"]:hover {
             background-color: #E9ECEF !important;
             color: #495057 !important;
             border-color: #ADB5BD !important;
         }
-        .stButton > button[type='primary'] {
+        div[data-testid="stButton"] > button[type='primary'],
+        .stButton > button[type='primary'],
+        button[kind="primary"] {
             background-color: #1D9BF0 !important;  /* Blue for selected */
             color: white !important;
             border-color: #1D9BF0 !important;
+            font-size: 8px !important;
+            height: 16px !important;
+            padding: 1px 4px !important;
         }
-        .stButton > button[type='primary']:hover {
+        div[data-testid="stButton"] > button[type='primary']:hover,
+        .stButton > button[type='primary']:hover,
+        button[kind="primary"]:hover {
             background-color: #0C7ABF !important;
             color: white !important;
             border-color: #0C7ABF !important;
@@ -251,7 +265,10 @@ st.markdown("""
             .tags {
                 font-size: 10px;
             }
-            .stButton > button {
+            div[data-testid="stButton"] > button,
+            .stButton > button,
+            button[kind="secondary"],
+            button[kind="primary"] {
                 font-size: 7px !important;
                 padding: 1px 3px !important;
                 height: 14px !important;
@@ -282,7 +299,10 @@ st.markdown("""
                 font-size: 11px;
                 line-height: 14px;
             }
-            .stButton > button {
+            div[data-testid="stButton"] > button,
+            .stButton > button,
+            button[kind="secondary"],
+            button[kind="primary"] {
                 font-size: 6px !important;
                 padding: 1px 2px !important;
                 height: 12px !important;
