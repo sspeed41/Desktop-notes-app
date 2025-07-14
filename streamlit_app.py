@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.10.5"
+APP_VERSION = "2.10.6"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):

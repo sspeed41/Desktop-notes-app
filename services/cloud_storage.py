@@ -79,13 +79,13 @@ class CloudStorageService:
             
             # Upload to Supabase storage
             logger.info(f"Reading file: {original_name}")
-            with open(file_path, 'rb') as file:
-                file_data = file.read()
-                logger.info(f"File read complete, uploading {len(file_data)} bytes")
-                
+            with open(file_path, 'rb') as fobj:
+                content_type = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
+                logger.info("File opened, streaming to Supabase …")
                 response = self.client.client.storage.from_(self.bucket_name).upload(
                     path=storage_path,
-                    file=file_data
+                    file=fobj,
+                    file_options={"content-type": content_type}
                 )
             
             # Check if upload was successful - Supabase returns different response structures
