@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.10.2"
+APP_VERSION = "2.10.3"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -545,17 +545,27 @@ if st.session_state.current_user:
             # Show what we're about to create
             with st.spinner("Creating note..."):
                 try:
+                    # Debug: Show what we're passing to the database
+                    st.write(f"🔍 DEBUG: About to create note with {len(media_files)} media files:")
+                    for i, media_file in enumerate(media_files):
+                        st.write(f"   {i+1}. {media_file['filename']} ({media_file['media_type']}) - {media_file['file_url']}")
+                    
                     new_note = asyncio.run(supabase.create_note_with_context(note_create, context_info, media_files=media_files, created_by=st.session_state.current_user))
                     if new_note:
                         st.success("✅ Note posted successfully!")
+                        st.write(f"🔍 DEBUG: Created note with ID: {new_note.id}")
                         st.session_state.selected_tags = []  # Clear selections
                         st.session_state.note_text = "" # Clear the text area
                         st.session_state.file_uploader_key += 1 # Increment key to clear files
                     else:
                         st.error("❌ Failed to post note - no response from database")
+                        st.write("🔍 DEBUG: create_note_with_context returned None")
                 except Exception as e:
                     st.error(f"❌ Error creating note: {str(e)}")
                     st.error("Check your database connection and try again.")
+                    st.write(f"🔍 DEBUG: Exception details: {type(e).__name__}: {e}")
+                    import traceback
+                    st.code(traceback.format_exc())
             st.rerun()
         else:
             st.warning("⚠️ Please enter some text for your note")

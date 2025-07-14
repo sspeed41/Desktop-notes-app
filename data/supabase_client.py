@@ -303,7 +303,13 @@ class SupabaseClient:
             
             # Attach media files if any
             if media_files and new_note.id:
+                logger.info(f"Attaching {len(media_files)} media files to note {new_note.id}")
                 await self._attach_media_files(new_note.id, media_files)
+            else:
+                if not media_files:
+                    logger.info("No media files to attach")
+                if not new_note.id:
+                    logger.error("Cannot attach media files: note ID is None")
             
             # Refetch the note view to get all details
             if not new_note.id:
@@ -479,12 +485,15 @@ class SupabaseClient:
     async def _attach_media_files(self, note_id: UUID, media_files: List[dict]) -> None:
         """Attach media files to a note"""
         if not self.is_connected or not self.client:
+            print(f"❌ Cannot attach media: not connected to database")
             logger.warning(f"Cannot attach media: not connected to database")
             return
             
         try:
+            print(f"🔍 Processing {len(media_files)} media files for note {note_id}")
             logger.debug(f"Processing {len(media_files)} media files for note {note_id}")
             for i, file_info in enumerate(media_files):
+                print(f"🔍 Processing file {i+1}: {file_info}")
                 # Check if this is the new format (already uploaded to storage)
                 if 'file_url' in file_info and 'media_type' in file_info:
                     # New format: files already uploaded to storage
@@ -537,14 +546,19 @@ class SupabaseClient:
                 }
                 
                 logger.debug(f"Inserting media record: {media_data}")
+                print(f"🔍 Inserting media record: {media_data}")
                 try:
                     response = self.client.table("media").insert(media_data).execute()
+                    print(f"🔍 Insert response: {response}")
                     if response.data:
+                        print(f"✅ Successfully attached media: {file_name} ({media_type})")
                         logger.debug(f"Successfully attached media: {file_name} ({media_type}) - URL: {file_url}")
                     else:
                         error_msg = getattr(response, 'error', 'No data returned')
+                        print(f"❌ Failed to insert media record for {file_name}: {error_msg}")
                         logger.error(f"Failed to insert media record for {file_name}: {error_msg}")
                 except Exception as insert_e:
+                    print(f"❌ Exception during media insert: {insert_e}")
                     logger.error(f"Exception during media insert: {insert_e}", exc_info=True)
                 
         except Exception as e:
