@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.10.7"
+APP_VERSION = "2.10.8"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -509,7 +509,11 @@ if st.session_state.current_user:
                         # Use the fixed CloudStorageService
                         try:
                             public_url = asyncio.run(cloud_storage.upload_file(tmp_file_path))
-                            st.write(f"🔍 DEBUG: CloudStorageService returned: {public_url}")
+                            st.write(f"🔍 DEBUG: CloudStorageService raw return: {public_url}")
+                            if not isinstance(public_url, str):
+                                st.warning("⚠️ Public URL is not a string - attempting to convert")
+                                public_url = str(public_url)
+                            st.write(f"🔍 DEBUG: Final public URL: {public_url}")
                             
                             if public_url:
                                 # Add to media files list
