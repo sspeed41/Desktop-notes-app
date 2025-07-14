@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.10.0"
+APP_VERSION = "2.10.1"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -466,118 +466,69 @@ if st.session_state.current_user:
                 tag_ids=[tag.id for tag in tags if tag.label in st.session_state.selected_tags and tag.id is not None]
             )
             
-            # Handle media files - COMPLETELY REWRITTEN APPROACH
+            # Handle media files - SIMPLIFIED APPROACH
             media_files = []
             if uploaded_files:
                 st.write(f"📁 Processing {len(uploaded_files)} file(s)...")
                 
-                # Use service role key for storage operations
-                service_role_key = st.secrets.get("SUPABASE_SERVICE_ROLE", os.getenv("SUPABASE_SERVICE_ROLE", ""))
-                if not service_role_key:
-                    st.error("❌ Service role key not found. Storage uploads require service role permissions.")
-                    st.stop()
-                
-                # Create a separate client with service role for storage
-                from supabase import create_client
-                storage_client = create_client(
-                    st.secrets.get("SUPABASE_URL", os.getenv("SUPABASE_URL", "")),
-                    service_role_key
-                )
-                
-                for i, uploaded_file in enumerate(uploaded_files, 1):
-                    st.write(f"📋 Processing file {i}/{len(uploaded_files)}: {uploaded_file.name}")
-                    
+                for uploaded_file in uploaded_files:
                     try:
-                        # Read file content once
-                        file_content = uploaded_file.read()
-                        file_size_mb = len(file_content) / (1024 * 1024)
+                        # Get file info
+                        file_size_mb = round(uploaded_file.size / (1024 * 1024), 2)
+                        file_ext = os.path.splitext(uploaded_file.name)[1].lower()
                         
-                        # Create unique filename with timestamp
-                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-                        name, ext = os.path.splitext(uploaded_file.name)
-                        unique_filename = f"{name}_{timestamp}{ext}"
-                        
-                        # Determine folder and media type
-                        file_ext = ext.lower()
+                        # Determine media type (using only valid database enum values)
                         if file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']:
-                            folder = "images"
                             media_type = "image"
                         elif file_ext in ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm']:
-                            folder = "videos"
                             media_type = "video"
                         elif file_ext in ['.csv', '.xlsx', '.xls']:
-                            folder = "files"
                             media_type = "csv"
                         else:
-                            folder = "files"
-                            media_type = "image"  # Default to image for database compatibility
+                            media_type = "image"  # Default fallback
                         
-                        # Create storage path
-                        year = datetime.now().strftime("%Y")
-                        month = datetime.now().strftime("%m")
-                        storage_path = f"{folder}/{year}/{month}/{unique_filename}"
+                        # Create unique filename
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        unique_filename = f"{timestamp}_{uploaded_file.name}"
+                        storage_path = f"uploads/{unique_filename}"
                         
-                        st.write(f"🔄 Uploading to: {storage_path}")
+                        st.write(f"📤 Uploading {uploaded_file.name} ({file_size_mb} MB)...")
                         
-                        # Upload with comprehensive error handling
-                        try:
-                            response = storage_client.storage.from_("racing-notes-media").upload(
-                                path=storage_path,
-                                file=file_content,
-                                file_options={
-                                    "content-type": uploaded_file.type or "application/octet-stream",
-                                    "upsert": "true"  # Allow overwriting if file exists
-                                }
-                            )
-                            
-                            # Check response structure
-                            st.write(f"🔍 Upload response type: {type(response)}")
-                            st.write(f"🔍 Upload response: {response}")
-                            
-                            # Check for errors in response
-                            error = getattr(response, 'error', None)
-                            if error:
-                                st.error(f"❌ Upload error: {error}")
-                                continue
-                            
-                            # Different success checks for different response types
-                            upload_success = False
-                            response_data = getattr(response, 'data', None)
-                            status_code = getattr(response, 'status_code', None)
-                            
-                            if response_data:
-                                upload_success = True
-                            elif status_code == 200:
-                                upload_success = True
-                            elif not error:
-                                # If no error attribute, assume success
-                                upload_success = True
-                            
-                            if not upload_success:
-                                st.error(f"❌ Upload failed: No success indicator in response")
-                                continue
-                            
-                            # Generate public URL
-                            public_url = storage_client.storage.from_("racing-notes-media").get_public_url(storage_path)
-                            st.write(f"✅ Generated URL: {public_url}")
-                            
-                            # Add to media files list
-                            media_files.append({
-                                'filename': uploaded_file.name,
-                                'file_url': public_url,
-                                'media_type': media_type,
-                                'size_mb': file_size_mb
-                            })
-                            
-                            st.success(f"✅ Successfully uploaded: {uploaded_file.name}")
-                            
-                        except Exception as upload_error:
-                            st.error(f"❌ Upload exception: {str(upload_error)}")
-                            st.error(f"🔍 Exception type: {type(upload_error).__name__}")
+                        # Read file content
+                        file_content = uploaded_file.read()
+                        
+                        # Simple upload using existing client
+                        if not supabase.client:
+                            st.error("❌ Supabase client not available")
                             continue
                             
-                    except Exception as file_error:
-                        st.error(f"❌ File processing error: {str(file_error)}")
+                        response = supabase.client.storage.from_("racing-notes-media").upload(
+                            path=storage_path,
+                            file=file_content,
+                            file_options={"content-type": uploaded_file.type}
+                        )
+                        
+                        # Simple error check
+                        error = getattr(response, 'error', None)
+                        if error:
+                            st.error(f"❌ Upload failed: {error}")
+                            continue
+                        
+                        # Get public URL
+                        public_url = supabase.client.storage.from_("racing-notes-media").get_public_url(storage_path)
+                        
+                        # Add to media files list
+                        media_files.append({
+                            'filename': uploaded_file.name,
+                            'file_url': public_url,
+                            'media_type': media_type,
+                            'size_mb': file_size_mb
+                        })
+                        
+                        st.success(f"✅ Uploaded: {uploaded_file.name}")
+                        
+                    except Exception as e:
+                        st.error(f"❌ Error uploading {uploaded_file.name}: {str(e)}")
                         continue
                 
                 st.write(f"📊 Successfully processed {len(media_files)} out of {len(uploaded_files)} files")
