@@ -495,6 +495,11 @@ class SupabaseClient:
                     
                     logger.debug(f"Processing uploaded file: {file_name} at {file_url}")
                     
+                    # Ensure media_type is valid for database (only 'video', 'image', 'csv' allowed)
+                    if media_type not in ['video', 'image', 'csv']:
+                        logger.warning(f"Invalid media_type '{media_type}' for file {file_name}, defaulting to 'image'")
+                        media_type = 'image'
+                    
                 else:
                     # Old format: files need to be processed (legacy support)
                     file_path = file_info['path']
@@ -502,7 +507,7 @@ class SupabaseClient:
                     file_size = file_info['size']
                     file_ext = file_info['ext'].lower()
                     
-                    # Determine media type
+                    # Determine media type (using only valid database enum values)
                     if file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']:
                         media_type = "image"
                     elif file_ext in ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm']:
@@ -510,7 +515,7 @@ class SupabaseClient:
                     elif file_ext in ['.csv', '.xlsx', '.xls']:
                         media_type = "csv"
                     else:
-                        media_type = "video"  # Default to video for unsupported types
+                        media_type = "image"  # Default to image for unsupported types
                     
                     # Use cloud URL if available, otherwise fallback to local path
                     if 'cloud_url' in file_info and file_info['cloud_url']:
@@ -531,11 +536,19 @@ class SupabaseClient:
                     "filename": file_name
                 }
                 
-                self.client.table("media").insert(media_data).execute()
-                logger.debug(f"Attached media: {file_name} ({media_type}) - URL: {file_url}")
+                logger.debug(f"Inserting media record: {media_data}")
+                try:
+                    response = self.client.table("media").insert(media_data).execute()
+                    if response.data:
+                        logger.debug(f"Successfully attached media: {file_name} ({media_type}) - URL: {file_url}")
+                    else:
+                        error_msg = getattr(response, 'error', 'No data returned')
+                        logger.error(f"Failed to insert media record for {file_name}: {error_msg}")
+                except Exception as insert_e:
+                    logger.error(f"Exception during media insert: {insert_e}", exc_info=True)
                 
         except Exception as e:
-            logger.error(f"Error attaching media files: {e}")
+            logger.error(f"Error attaching media files: {e}", exc_info=True)
 
     async def upload_media(self, file_path: str, note_id: UUID) -> Optional[str]:
         """Upload media file to Supabase storage"""
