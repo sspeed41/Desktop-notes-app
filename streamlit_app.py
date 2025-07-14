@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.10.4"
+APP_VERSION = "2.10.5"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -532,6 +532,16 @@ if st.session_state.current_user:
                         continue
                 
                 st.write(f"📊 Successfully processed {len(media_files)} out of {len(uploaded_files)} files")
+                
+                # Debug: Show what we're about to pass to the database
+                if media_files:
+                    st.write("🔍 DEBUG: Media files to be attached:")
+                    for i, media_file in enumerate(media_files, 1):
+                        st.write(f"   {i}. {media_file['filename']} ({media_file['media_type']})")
+                        st.write(f"      URL: {media_file['file_url']}")
+                        st.write(f"      Size: {media_file['size_mb']} MB")
+                else:
+                    st.write("🔍 DEBUG: No media files to attach")
             
             # Context info
             context_info = {
