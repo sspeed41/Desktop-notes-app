@@ -95,7 +95,24 @@ class CloudStorageService:
                 raise MediaUploadError(f"Upload failed: {error_msg}")
             
             # Get public URL
-            public_url = self.client.client.storage.from_(self.bucket_name).get_public_url(storage_path)
+            # Supabase returns a StorageResponse with the URL stored in .data or a simple dict.
+            public_url_resp = self.client.client.storage.from_(self.bucket_name).get_public_url(storage_path)
+
+            # Normalise to raw string so callers don’t have to worry about response format
+            if isinstance(public_url_resp, dict):
+                public_url = public_url_resp.get("publicURL") or public_url_resp.get("publicUrl")
+            elif hasattr(public_url_resp, "data"):
+                # Expected format (supabase-py <2.0): StorageResponse with .data dict
+                data_field: Any = getattr(public_url_resp, "data")  # type: ignore[attr-defined]
+                if isinstance(data_field, dict):
+                    public_url = data_field.get("publicURL") or data_field.get("publicUrl")
+            else:
+                # Fallback to string representation (works on older client versions)
+                public_url = str(public_url_resp)
+
+            if not public_url:
+                raise MediaUploadError("Failed to obtain public URL for uploaded file")
+
             logger.info(f"Successfully uploaded {original_name} to cloud storage")
             return public_url
                 
