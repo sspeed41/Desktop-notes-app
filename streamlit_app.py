@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.10.6"
+APP_VERSION = "2.10.7"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -496,69 +496,42 @@ if st.session_state.current_user:
                         else:
                             media_type = "image"  # Default fallback
                         
-                        # Create unique filename
-                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                        unique_filename = f"{timestamp}_{uploaded_file.name}"
-                        storage_path = f"uploads/{unique_filename}"
-                        
                         st.write(f"📤 Uploading {uploaded_file.name} ({file_size_mb} MB)...")
                         
-                        # Read file content
-                        st.write(f"🔍 DEBUG: Reading file content...")
-                        file_content = uploaded_file.read()
-                        st.write(f"🔍 DEBUG: File content read: {len(file_content)} bytes")
+                        # Save uploaded file to temporary location
+                        import tempfile
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
+                            tmp_file.write(uploaded_file.read())
+                            tmp_file_path = tmp_file.name
                         
-                        # Simple upload using existing client
-                        if not supabase.client:
-                            st.error("❌ Supabase client not available")
-                            continue
+                        st.write(f"🔍 DEBUG: Saved to temp file: {tmp_file_path}")
                         
-                        st.write(f"🔍 DEBUG: Attempting upload to path: {storage_path}")
-                        response = supabase.client.storage.from_("racing-notes-media").upload(
-                            path=storage_path,
-                            file=file_content,
-                            file_options={"content-type": uploaded_file.type}
-                        )
-                        st.write(f"🔍 DEBUG: Upload response: {response}")
-                        
-                        # Simple error check
-                        error = getattr(response, 'error', None)
-                        if error:
-                            st.error(f"❌ Upload failed: {error}")
-                            continue
-                        
-                        st.write(f"🔍 DEBUG: Upload successful, getting public URL...")
-                        # Get public URL
-                        public_url_resp = supabase.client.storage.from_("racing-notes-media").get_public_url(storage_path)
-
-                        # Normalise to raw string URL (Supabase returns different formats across versions)
-                        if isinstance(public_url_resp, dict):
-                            public_url = public_url_resp.get("publicURL") or public_url_resp.get("publicUrl")
-                        elif hasattr(public_url_resp, "data"):
-                            data_field = getattr(public_url_resp, "data", None)  # type: ignore[attr-defined]
-                            public_url = None
-                            if isinstance(data_field, dict):
-                                public_url = data_field.get("publicURL") or data_field.get("publicUrl")
-                        else:
-                            public_url = str(public_url_resp)
-
-                        if not public_url:
-                            st.error("❌ Failed to get public URL from Supabase response")
-                            continue
-
-                        st.write(f"🔍 DEBUG: Public URL: {public_url}")
-                        
-                        # Add to media files list
-                        media_file = {
-                            'filename': uploaded_file.name,
-                            'file_url': public_url,
-                            'media_type': media_type,
-                            'size_mb': file_size_mb
-                        }
-                        media_files.append(media_file)
-                        st.write(f"🔍 DEBUG: Added to media_files: {media_file}")
-                        
-                        st.success(f"✅ Uploaded: {uploaded_file.name}")
+                        # Use the fixed CloudStorageService
+                        try:
+                            public_url = asyncio.run(cloud_storage.upload_file(tmp_file_path))
+                            st.write(f"🔍 DEBUG: CloudStorageService returned: {public_url}")
+                            
+                            if public_url:
+                                # Add to media files list
+                                media_file = {
+                                    'filename': uploaded_file.name,
+                                    'file_url': public_url,
+                                    'media_type': media_type,
+                                    'size_mb': file_size_mb
+                                }
+                                media_files.append(media_file)
+                                st.write(f"🔍 DEBUG: Added to media_files: {media_file}")
+                                st.success(f"✅ Uploaded: {uploaded_file.name}")
+                            else:
+                                st.error(f"❌ Upload failed: No URL returned")
+                                
+                        finally:
+                            # Clean up temp file
+                            import os
+                            try:
+                                os.unlink(tmp_file_path)
+                            except:
+                                pass
                         
                     except Exception as e:
                         st.error(f"❌ Error uploading {uploaded_file.name}: {str(e)}")
