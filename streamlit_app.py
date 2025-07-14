@@ -15,7 +15,7 @@ import asyncio
 # ============================================================================
 
 # Version Configuration - Update this for each deployment
-APP_VERSION = "2.9.1"
+APP_VERSION = "2.9.2"
 
 # Quick check for required directories
 if not os.path.exists("data") or not os.path.exists("services"):
@@ -509,6 +509,12 @@ if st.session_state.current_user:
                             file=file_content,
                             file_options={"content-type": uploaded_file.type}
                         )
+                        
+                        # Check for upload errors
+                        error = getattr(response, 'error', None)
+                        if error:
+                            st.error(f"❌ Upload failed: {error}")
+                            continue
                         
                         # Get public URL
                         public_url = supabase.client.storage.from_("racing-notes-media").get_public_url(storage_path)
